@@ -1,0 +1,13 @@
+venv/
+
+# Pastas e arquivos de debug
+debug/
+*.json
+
+# Variáveis de ambiente
+.env
+
+
+
+
+__pycache__/
