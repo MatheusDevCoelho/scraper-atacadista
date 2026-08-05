@@ -4,10 +4,10 @@ venv/
 debug/
 *.json
 
+# Banco de dados local (gerado em runtime, não deve ser versionado)
+*.db
+
 # Variáveis de ambiente
 .env
-
-
-
 
 __pycache__/
