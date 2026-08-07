@@ -30,6 +30,17 @@ async def lifespan(app: FastAPI):
     await loja.abrir_site()
     await loja.definir_localizacao(CEP_PADRAO, NUMERO_PADRAO)
 
+    # Diagnóstico: 'Sessão pronta' não garante que a localização foi
+    # realmente aplicada (os try/except internos podem ter falhado em
+    # silêncio). Checamos o cookie de verdade antes de seguir.
+    cookies = await page.context.cookies()
+    cookie_regional = next((c for c in cookies if c["name"] == "regionalization"), None)
+    if cookie_regional:
+        print(f"[DIAGNÓSTICO] Cookie 'regionalization' OK: {cookie_regional['value']}")
+    else:
+        print("[DIAGNÓSTICO] ⚠️ Cookie 'regionalization' NÃO foi encontrado — "
+              "a localização provavelmente não foi aplicada.")
+
     app.state.playwright = playwright
     app.state.browser = browser
     app.state.loja = loja

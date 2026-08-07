@@ -1,8 +1,20 @@
 import re
+from urllib.parse import unquote
 
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from .base import LojaBase
+
+
+def _resposta_corresponde_ao_termo(url: str, termo: str) -> bool:
+    """
+    'operationName=ProductsQuery' é reutilizado por outros componentes da
+    página (carrosséis, recomendações), não só pela busca. Sem checar o
+    termo de verdade, podíamos capturar a resposta errada por coincidência
+    de timing numa sessão que fica aberta esperando requisições.
+    """
+    url_decodificada = unquote(url).lower()
+    return f'"term":"{termo.lower()}"' in url_decodificada
 
 
 class Atacadao(LojaBase):
@@ -103,7 +115,9 @@ class Atacadao(LojaBase):
             await campo_busca.fill(termo)
 
             async with self.page.expect_response(
-                lambda r: "operationName=ProductsQuery" in r.url and r.status == 200,
+                lambda r: "operationName=ProductsQuery" in r.url
+                and r.status == 200
+                and _resposta_corresponde_ao_termo(r.url, termo),
                 timeout=15000,
             ) as info_resposta:
                 await campo_busca.press("Enter")
